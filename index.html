@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CN12KH Trading Journal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        profit: { 50: '#eff6ff', 100: '#dbeafe', 500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8' },
+                        loss: { 50: '#fef2f2', 100: '#fee2e2', 500: '#ef4444', 600: '#dc2626', 700: '#b91c1c' }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+    <header class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-lg font-black text-xl shadow-md">CN</div>
+                    <div>
+                        <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400">CN12KH Trading Journal</h1>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 font-medium">Professional Cloud & Drive Sync</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-3">
+                    <button id="downloadSourceBtn" class="hidden sm:flex items-center space-x-1 px-3 py-1.5 text-xs font-semibold bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition">
+                        <i class="fa-solid fa-code text-blue-500"></i>
+                        <span>VSCode Source</span>
+                    </button>
+
+                    <button id="themeToggle" class="p-2 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition">
+                        <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                    </button>
+
+                    <div id="authSection" class="relative">
+                        <button id="loginBtn" class="flex items-center space-x-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-700 dark:text-white px-3 py-1.5 rounded-lg text-sm font-medium shadow-sm transition">
+                            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" class="w-4 h-4">
+                            <span>Sign in with Gmail</span>
+                        </button>
+
+                        <div id="userInfo" class="hidden flex items-center space-x-3">
+                            <div class="flex items-center space-x-2 cursor-pointer p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition" id="userProfileToggle">
+                                <img id="userAvatar" src="https://placehold.co/40x40/3b82f6/ffffff?text=U" class="w-8 h-8 rounded-full border border-blue-500">
+                                <div class="hidden md:block text-left">
+                                    <p id="userName" class="text-xs font-bold leading-tight">User Name</p>
+                                    <p id="userEmail" class="text-[10px] text-gray-500 dark:text-gray-400">user@gmail.com</p>
+                                </div>
+                            </div>
+                            <button id="logoutBtn" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition" title="Sign Out">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700">
+            <div class="max-w-7xl mx-auto px-4 flex space-x-1 sm:space-x-4 overflow-x-auto custom-scrollbar">
+                <button data-tab="overview" class="nav-tab active px-4 py-3 text-sm font-medium border-b-2 border-blue-600 text-blue-600 dark:text-blue-400 whitespace-nowrap flex items-center space-x-2">
+                    <i class="fa-solid fa-chart-line"></i><span>Overview</span>
+                </button>
+                <button data-tab="trades" class="nav-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 whitespace-nowrap flex items-center space-x-2">
+                    <i class="fa-solid fa-list-check"></i><span>Trades</span>
+                </button>
+                <button data-tab="calendar" class="nav-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 whitespace-nowrap flex items-center space-x-2">
+                    <i class="fa-regular fa-calendar-days"></i><span>Calendar</span>
+                </button>
+                <button data-tab="analytics" class="nav-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 whitespace-nowrap flex items-center space-x-2">
+                    <i class="fa-solid fa-chart-pie"></i><span>Statistics</span>
+                </button>
+                <button data-tab="drive-sync" class="nav-tab px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 whitespace-nowrap flex items-center space-x-2">
+                    <i class="fa-brands fa-google-drive text-green-500"></i><span>Google Drive & Sync</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+        <div id="driveNotice" class="hidden p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i class="fa-brands fa-google-drive text-2xl text-blue-600 dark:text-blue-400"></i>
+                <div>
+                    <p class="text-sm font-semibold text-blue-900 dark:text-blue-200">Google Drive Linked & Ready</p>
+                    <p class="text-xs text-blue-700 dark:text-blue-400">Your trading database is autosaving and cloud sync ready.</p>
+                </div>
+            </div>
+            <button id="syncNowQuickBtn" class="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg shadow hover:bg-blue-700 transition">Sync Now</button>
+        </div>
+
+        <!-- TAB 1: OVERVIEW -->
+        <section id="tab-overview" class="tab-content space-y-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Profit / Loss</p>
+                    <p id="statNetPnL" class="text-2xl font-black mt-1 text-gray-900 dark:text-white">$0.00</p>
+                    <span id="statPnLBadge" class="inline-block mt-2 px-2 py-0.5 text-xs font-bold rounded bg-gray-100 dark:bg-gray-700 text-gray-600">0 Trades</span>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Win Rate</p>
+                    <p id="statWinRate" class="text-2xl font-black mt-1 text-blue-600 dark:text-blue-400">0%</p>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-3">
+                        <div id="statWinBar" class="bg-blue-600 h-1.5 rounded-full" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Profit Factor</p>
+                    <p id="statProfitFactor" class="text-2xl font-black mt-1 text-gray-900 dark:text-white">0.00</p>
+                    <p class="text-xs text-gray-400 mt-2">Avg Win vs Avg Loss</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Executions</p>
+                    <p id="statTotalTrades" class="text-2xl font-black mt-1 text-gray-900 dark:text-white">0</p>
+                    <p class="text-xs text-gray-400 mt-2">Database records</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-base font-bold text-gray-900 dark:text-white">Performance Growth Curve</h3>
+                        <span class="text-xs text-blue-600 dark:text-blue-400 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1"></i> Profit = BLUE / Loss = RED</span>
+                    </div>
+                    <div class="h-64 relative"><canvas id="equityChart"></canvas></div>
+                </div>
+
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex flex-col">
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white mb-3">Quick Trade Entry</h3>
+                    <form id="quickTradeForm" class="space-y-3 flex-1 flex flex-col justify-between">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Date & Time</label>
+                            <input type="datetime-local" id="qDate" required class="w-full mt-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Pair / Asset</label>
+                                <input type="text" id="qSymbol" placeholder="EURUSD, BTC..." required class="w-full mt-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none uppercase">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Side</label>
+                                <select id="qSide" class="w-full mt-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                    <option value="BUY">BUY (Long)</option>
+                                    <option value="SELL">SELL (Short)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Net Profit ($)</label>
+                                <input type="number" step="0.01" id="qProfit" placeholder="+150 or -50" required class="w-full mt-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Lot Size</label>
+                                <input type="number" step="0.01" id="qLots" placeholder="1.0" class="w-full mt-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full mt-2 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-lg shadow transition flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-plus"></i><span>Log Trade & Sync</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: TRADES -->
+        <section id="tab-trades" class="tab-content hidden space-y-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div class="relative w-full sm:w-72">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-gray-400 text-sm"></i>
+                    <input type="text" id="tradeSearch" placeholder="Search symbol or notes..." class="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="flex items-center space-x-2 w-full sm:w-auto">
+                    <button id="clearAllTradesBtn" class="px-3 py-2 text-xs font-semibold text-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 rounded-lg transition">Clear Database</button>
+                    <button id="addTradeModalOpen" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold rounded-lg shadow transition flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i><span>Add Detailed Trade</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 uppercase text-[11px] font-bold tracking-wider">
+                                <th class="p-3">Date</th>
+                                <th class="p-3">Symbol</th>
+                                <th class="p-3">Type</th>
+                                <th class="p-3">Lot</th>
+                                <th class="p-3">Entry/Exit</th>
+                                <th class="p-3">P&L ($)</th>
+                                <th class="p-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradesTableBody" class="divide-y divide-gray-200 dark:divide-gray-700"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: CALENDAR -->
+        <section id="tab-calendar" class="tab-content hidden space-y-4">
+            <div class="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <h2 class="text-lg font-bold text-gray-900 dark:text-white" id="calendarTitle">September 2026</h2>
+                    <span class="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 font-semibold px-2 py-0.5 rounded">Profit = Blue / Loss = Red</span>
+                </div>
+                <div class="flex space-x-2">
+                    <button id="prevMonthBtn" class="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 transition"><i class="fa-solid fa-chevron-left"></i></button>
+                    <button id="todayMonthBtn" class="px-3 py-1.5 text-xs font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Sep 2026</button>
+                    <button id="nextMonthBtn" class="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 transition"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-7 gap-1 text-center font-bold text-xs uppercase text-gray-500 dark:text-gray-400">
+                <div class="p-2">Sun</div><div class="p-2">Mon</div><div class="p-2">Tue</div><div class="p-2">Wed</div><div class="p-2">Thu</div><div class="p-2">Fri</div><div class="p-2">Sat</div>
+            </div>
+
+            <div id="calendarGrid" class="grid grid-cols-7 gap-2"></div>
+        </section>
+
+        <!-- TAB 4: STATISTICS -->
+        <section id="tab-analytics" class="tab-content hidden space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-4">Win vs Loss Distribution</h3>
+                    <div class="h-60 relative flex justify-center"><canvas id="winLossChart"></canvas></div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-4">P&L by Symbol</h3>
+                    <div class="h-60 relative"><canvas id="symbolBarChart"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 5: DRIVE -->
+        <section id="tab-drive-sync" class="tab-content hidden space-y-6">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 space-y-6 shadow-sm">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="fa-brands fa-google-drive text-green-500"></i> Google Drive & Cloud Database Storage
+                    </h2>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Connect your Gmail account to save, sync, and load your trading database straight to your personal Google Drive.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl border border-blue-200 dark:border-blue-900 bg-blue-50/50 dark:bg-blue-950/20 space-y-3">
+                        <div class="flex items-center space-x-2 text-blue-600 dark:text-blue-400 font-bold text-sm">
+                            <i class="fa-solid fa-cloud-arrow-up text-lg"></i><span>Save to Google Drive</span>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-300">Export current trade journal records to your Google Drive as <code>CN12KH_Trading_Journal.json</code>.</p>
+                        <button id="saveToDriveBtn" class="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow transition">Save Journal to Google Drive</button>
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-emerald-200 dark:border-emerald-900 bg-emerald-50/50 dark:bg-emerald-950/20 space-y-3">
+                        <div class="flex items-center space-x-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm">
+                            <i class="fa-solid fa-cloud-arrow-down text-lg"></i><span>Load from Google Drive</span>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-300">Restore your trading journal from a saved JSON backup file.</p>
+                        <button id="loadFromDriveBtn" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow transition">Load Journal from Drive</button>
+                    </div>
+
+                    <div class="p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 space-y-3">
+                        <div class="flex items-center space-x-2 text-gray-700 dark:text-gray-300 font-bold text-sm">
+                            <i class="fa-solid fa-file-excel text-green-600 text-lg"></i><span>Export CSV / Excel</span>
+                        </div>
+                        <p class="text-xs text-gray-500">Download trading database formatted for Excel spreadsheet analysis.</p>
+                        <button id="exportCsvBtn" class="w-full py-2 bg-gray-700 hover:bg-gray-800 text-white font-bold text-xs rounded-lg transition">Download CSV Database</button>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+                    <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2">Google Sheets Webhook Sync</h3>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Paste your Google Sheets Published Web / CSV link.</p>
+                    <div class="flex gap-2">
+                        <input type="url" id="sheetUrlInput" placeholder="https://docs.google.com/spreadsheets/d/e/.../pub?output=csv" class="flex-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg outline-none">
+                        <button id="syncSheetUrlBtn" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg transition">Fetch Sheet</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Trade Modal -->
+    <div id="tradeModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white dark:bg-gray-800 w-full max-w-lg rounded-2xl shadow-xl overflow-hidden border border-gray-200 dark:border-gray-700">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-gray-900 dark:text-white">Add New Trade</h3>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="fullTradeForm" class="p-5 space-y-4">
+                <input type="hidden" id="editTradeId">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">Date & Time</label>
+                        <input type="datetime-local" id="fDate" required class="w-full mt-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">Symbol</label>
+                        <input type="text" id="fSymbol" placeholder="EURUSD" required class="w-full mt-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg uppercase">
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">Type</label>
+                        <select id="fSide" class="w-full mt-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg">
+                            <option value="BUY">BUY</option>
+                            <option value="SELL">SELL</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">Lots</label>
+                        <input type="number" step="0.01" id="fLots" placeholder="1.00" class="w-full mt-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">Profit/Loss ($)</label>
+                        <input type="number" step="0.01" id="fProfit" placeholder="250.00" required class="w-full mt-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">Entry Price</label>
+                        <input type="number" step="any" id="fEntry" placeholder="1.0850" class="w-full mt-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">Exit Price</label>
+                        <input type="number" step="any" id="fExit" placeholder="1.0900" class="w-full mt-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 dark:text-gray-300">Notes / Setup Strategy</label>
+                    <textarea id="fNotes" rows="2" placeholder="Key details, confluence, emotion..." class="w-full mt-1 px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 dark:bg-gray-700 rounded-lg"></textarea>
+                </div>
+                <div class="flex justify-end space-x-2 pt-2">
+                    <button type="button" id="cancelModalBtn" class="px-4 py-2 text-xs font-semibold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow">Save Trade</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
